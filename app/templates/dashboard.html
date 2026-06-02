@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maloca Command | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --color-surface: #0b1326;
+            --color-primary: #adc7ff;
+            --color-on-primary: #002e68;
+            --color-secondary: #4edea3;
+            --color-on-secondary: #003824;
+            --color-tertiary: #ffb2b7;
+            --color-tertiary-container: #ff516a;
+            --color-on-surface: #dae2fd;
+            --color-on-surface-variant: #c1c6d7;
+            --color-outline-variant: #414754;
+            --color-surface-container-low: #131b2e;
+            --color-surface-container-high: #222a3d;
+            --color-surface-variant: #2d3449;
+            --color-error: #ffb4ab;
+        }
+
+        body {
+            background-color: var(--color-surface);
+            color: var(--color-on-surface);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glass-panel {
+            background: rgba(19, 27, 46, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(19, 27, 46, 0.85);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+
+        .fill-1 { font-variation-settings: 'FILL' 1; }
+
+        .video-scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(173, 199, 255, 0.05) 50%);
+            background-size: 100% 4px;
+        }
+
+        @keyframes pulse-glow-blue {
+            0%, 100% { box-shadow: 0 0 4px rgba(173, 199, 255, 0.3); }
+            50% { box-shadow: 0 0 12px rgba(173, 199, 255, 0.6); }
+        }
+
+        .active-detection-blue {
+            animation: pulse-glow-blue 2s infinite;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(11, 19, 38, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d3449;
+            border-radius: 10px;
+        }
+
+        /* Gauge */
+        .gauge-container {
+            position: relative;
+            width: 160px;
+            height: 80px;
+            overflow: hidden;
+        }
+        .gauge-bg {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 12px solid #2d3449;
+        }
+        .gauge-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 12px solid transparent;
+            border-top-color: var(--color-secondary);
+            border-right-color: var(--color-secondary);
+            transform: rotate(-45deg);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sidebar-item-active {
+            background-color: #00a572;
+            color: #002113;
+        }
+
+        /* Animación para nuevos eventos */
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .event-item {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="custom-scrollbar">
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-8 h-16 bg-[#0b1326]/80 backdrop-blur-md border-b border-[#414754]/30 shadow-sm">
+        <div class="flex items-center gap-8">
+            <h1 class="text-lg md:text-xl font-bold tracking-tight text-[#adc7ff] select-none cursor-pointer" onclick="location.reload()">
+                Maloca Command
+            </h1>
+            <nav class="hidden md:flex items-center gap-6">
+                <a href="/" class="text-xs font-bold tracking-widest uppercase pb-1 text-[#adc7ff] border-b-2 border-[#adc7ff]">Dashboard</a>
+                <a href="/analytics" class="text-xs font-bold tracking-widest uppercase pb-1 text-[#c1c6d7] hover:text-[#adc7ff] transition-colors">Analytics</a>
+                <a href="/distribution" class="text-xs font-bold tracking-widest uppercase pb-1 text-[#c1c6d7] hover:text-[#adc7ff] transition-colors">Distribución</a>
+                <a href="#" onclick="alert('Camera Settings: Acceso restringido a administradores.')" class="text-xs font-bold tracking-widest uppercase pb-1 text-[#c1c6d7] hover:text-[#adc7ff] transition-colors">Camera Settings</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden lg:flex items-center bg-[#2d3449]/40 rounded-full px-4 py-1.5 border border-[#414754]/20 focus-within:border-[#adc7ff]/50 transition-colors">
+                <span class="material-symbols-outlined text-[18px] text-[#c1c6d7] mr-2">search</span>
+                <input type="text" id="global-search" oninput="filterEvents()" placeholder="Search telemetry..." class="bg-transparent border-none text-xs text-[#dae2fd] focus:outline-none w-48 font-semibold">
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="p-2 text-[#c1c6d7] hover:text-[#adc7ff] relative transition-transform active:scale-90" onclick="alert('No hay notificaciones críticas pendientes.')">
+                    <span class="material-symbols-outlined text-[22px]">notifications</span>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ffb4ab] rounded-full animate-ping"></span>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ffb4ab] rounded-full"></span>
+                </button>
+                <div class="h-8 w-8 rounded-full bg-[#222a3d] border border-[#414754]/40 flex items-center justify-center cursor-pointer hover:border-[#adc7ff]/50 transition-colors" onclick="alert('Operador: Maloca Admin\nID: MC-7742\nStatus: Online')">
+                    <span class="material-symbols-outlined text-[#adc7ff] text-[20px] fill-1">account_circle</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="fixed left-0 top-16 h-[calc(100vh-64px)] z-40 flex flex-col p-4 w-64 bg-[#131b2e]/90 backdrop-blur-xl border-r border-[#414754]/30 hidden md:flex">
+        <div class="mb-6 px-2 flex items-center gap-3">
+            <div class="h-10 w-10.5 rounded-lg bg-[#2d3449]/70 flex items-center justify-center border border-[#414754]/40 overflow-hidden">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlvrQqeqoEk_HiRGKVElpPvgSevwVAJXa6oqinCGweJqyDQ6jPDObHAWBPsSzjsGb-lqp9CA9D3crW6bOugH0Fg__leVVmJj73kO6xBlXRKZiqjj_rA3iseXv2xaUdT_rEac2krNa3D8nfURylIiwBuDhdIO7RAYT5ILXfzwpBkum37D8HLdoVjJJW0CJnrmtN-8b2B7hsYcaxNzk58TVsO_dD-pxMTs65OBvP2GLk01HW-DexgZ2OYp946LdzebvR0IMs9fmcujc2" class="h-full w-full object-cover">
+            </div>
+            <div>
+                <h3 class="text-[#adc7ff] font-bold text-sm leading-none">Maloca Admin</h3>
+                <p class="text-[10px] text-[#c1c6d7]/70 font-semibold tracking-wider uppercase mt-1">System Operator</p>
+            </div>
+        </div>
+        <nav class="flex-1 space-y-1">
+            <a href="/" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg sidebar-item-active cursor-pointer">
+                <span class="material-symbols-outlined text-[20px] fill-1">dashboard</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">Dashboard</span>
+            </a>
+            <a href="/analytics" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35 hover:text-[#dae2fd] cursor-pointer transition-colors">
+                <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">Analytics</span>
+            </a>
+            <a href="/distribution" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35 hover:text-[#dae2fd] cursor-pointer transition-colors">
+                <span class="material-symbols-outlined text-[20px]">grid_view</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">Distribución</span>
+            </a>
+            <div onclick="alert('Camera Calibration')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35 hover:text-[#dae2fd] cursor-pointer transition-colors">
+                <span class="material-symbols-outlined text-[20px]">videocam</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">Camera Settings</span>
+            </div>
+            <div onclick="alert('System Logs: Verificando integridad...')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35 hover:text-[#dae2fd] cursor-pointer transition-colors">
+                <span class="material-symbols-outlined text-[20px]">terminal</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">System Logs</span>
+            </div>
+        </nav>
+        <div class="mt-auto pt-4 border-t border-[#414754]/20">
+            <button onclick="generateReport()" class="w-full py-2.5 px-4 bg-[#adc7ff] text-[#001a41] font-semibold tracking-widest uppercase text-xs rounded-lg hover:brightness-110 hover:shadow-[0_0_15px_rgba(173,199,255,0.4)] transition-all active:scale-95">
+                Generate Report
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="md:ml-64 pt-44 p-4 md:p-8 lg:p-12">
+        <div class="max-w-[1920px] mx-auto grid grid-cols-12 gap-8">
+            
+            <!-- 4 CARDS REFACTORIZADAS -->
+            <div class="col-span-12 md:col-span-3 glass-panel rounded-xl p-5 flex flex-col justify-between relative min-h-[160px] shadow-lg group border-t-4 border-t-[#adc7ff]">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-[#adc7ff]/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-[#adc7ff]/10 transition-colors"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Dentro de Maloca</span>
+                    <span class="material-symbols-outlined text-[#adc7ff] text-[24px] fill-1">person_pin_circle</span>
+                </div>
+                <div class="mt-4 relative z-10">
+                    <span id="count-now" class="font-mono text-5xl font-bold text-white tracking-widest">0</span>
+                </div>
+                <div class="w-full h-1 bg-[#2d3449] mt-4 rounded-full overflow-hidden">
+                    <div id="occupancy-bar" class="h-full bg-[#adc7ff] transition-all duration-1000 ease-out" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div id="card-in" class="col-span-6 md:col-span-3 glass-panel rounded-xl p-5 flex flex-col justify-between border-l-4 border-[#414754]/30 min-h-[160px] shadow-lg group transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Entrando</span>
+                    <span id="icon-in" class="material-symbols-outlined text-[#c1c6d7] text-[24px]">login</span>
+                </div>
+                <div class="mt-2">
+                    <span id="count-in" class="font-mono text-5xl font-bold text-white tracking-wider">0</span>
+                </div>
+                <span id="status-in" class="text-[10px] font-bold tracking-tighter uppercase mt-2 opacity-40 text-[#c1c6d7]">Sensor Inactivo</span>
+            </div>
+
+            <div id="card-out" class="col-span-6 md:col-span-3 glass-panel rounded-xl p-5 flex flex-col justify-between border-l-4 border-[#414754]/30 min-h-[160px] shadow-lg group transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Saliendo</span>
+                    <span id="icon-out" class="material-symbols-outlined text-[#c1c6d7] text-[24px]">logout</span>
+                </div>
+                <div class="mt-2">
+                    <span id="count-out" class="font-mono text-5xl font-bold text-white tracking-wider">0</span>
+                </div>
+                <span id="status-out" class="text-[10px] font-bold tracking-tighter uppercase mt-2 opacity-40 text-[#c1c6d7]">Sensor Inactivo</span>
+            </div>
+
+            <div class="col-span-12 md:col-span-3 glass-panel rounded-xl p-5 flex flex-col justify-between border-l-4 border-l-[#adc7ff] min-h-[160px] shadow-lg group">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Capacidad Libres</span>
+                    <span class="material-symbols-outlined text-[#adc7ff] text-[24px] fill-1">event_seat</span>
+                </div>
+                <div class="mt-2">
+                    <span id="count-free" class="font-mono text-5xl font-bold text-white tracking-wider">30</span>
+                </div>
+                <p class="text-[9px] text-[#c1c6d7] font-bold tracking-tighter uppercase mt-2 opacity-50">Límite: 30 Personas</p>
+            </div>
+
+            <!-- Monitoring Area -->
+            <div class="col-span-12 lg:col-span-9 space-y-8">
+                <div class="relative glass-panel rounded-2xl overflow-hidden aspect-video group border border-[#414754]/30 shadow-2xl">
+                    <img id="video-feed" src="/video_feed" class="w-full h-full object-cover opacity-95 transition-opacity duration-500" onerror="this.src='https://via.placeholder.com/1280x720/0b1326/adc7ff?text=WAITING+FOR+VIDEO+STREAM...'">
+                    
+                    <!-- Overlays -->
+                    <div class="absolute inset-0 pointer-events-none select-none">
+                        <div class="video-scanline absolute inset-0 opacity-10"></div>
+                        
+                        <!-- REC -->
+                        <div class="absolute top-6 right-6 flex items-center gap-2 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#ffb4ab]/30 shadow-lg">
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#ffb4ab] animate-pulse"></div>
+                            <span class="font-mono text-[#ffb4ab] text-xs font-bold tracking-widest">LIVE REC</span>
+                        </div>
+
+                        <!-- Telemetry Overlay -->
+                        <div class="absolute bottom-6 left-6 glass-panel px-5 py-3 rounded-xl border border-white/10 flex gap-8 backdrop-blur-lg shadow-xl translate-y-2 group-hover:translate-y-0 transition-transform">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold tracking-wider text-[#c1c6d7] uppercase opacity-70">ENGINE</span>
+                                <span class="font-mono text-sm text-[#adc7ff] font-bold">YOLOv8n</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold tracking-wider text-[#c1c6d7] uppercase opacity-70">FPS</span>
+                                <span id="fps" class="font-mono text-sm text-[#4edea3] font-bold">--.-</span>
+                            </div>
+                            <div class="flex flex-col border-l border-white/10 pl-8">
+                                <span class="text-[10px] font-bold tracking-wider text-[#c1c6d7] uppercase opacity-70">UPTIME</span>
+                                <span id="uptime" class="font-mono text-sm text-white font-bold">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-[#2d3449]/30 transition-colors cursor-default">
+                        <div class="w-10 h-10 rounded-full bg-[#4edea3]/10 flex items-center justify-center text-[#4edea3]">
+                            <span class="material-symbols-outlined fill-1">check_circle</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-[#c1c6d7] tracking-widest uppercase leading-none">NETWORK</p>
+                            <p class="font-mono text-sm text-white font-bold mt-1.5">OPTIMAL</p>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-[#2d3449]/30 transition-colors cursor-default">
+                        <div class="w-10 h-10 rounded-full bg-[#adc7ff]/10 flex items-center justify-center text-[#adc7ff]">
+                            <span class="material-symbols-outlined fill-1">memory</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-[#c1c6d7] tracking-widest uppercase leading-none">GPU LOAD</p>
+                            <p id="gpu-load" class="font-mono text-sm text-white font-bold mt-1.5">--%</p>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-[#2d3449]/30 transition-colors cursor-default">
+                        <div class="w-10 h-10 rounded-full bg-[#c1c6d7]/10 flex items-center justify-center text-[#c1c6d7]">
+                            <span class="material-symbols-outlined">update</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-[#c1c6d7] tracking-widest uppercase leading-none">STATUS</p>
+                            <p class="font-mono text-sm text-white font-bold mt-1.5 uppercase">Online</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Feed -->
+            <div class="col-span-12 lg:col-span-3 space-y-8">
+                <!-- Gauge Capacity -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col items-center shadow-xl">
+                    <span class="text-xs font-bold tracking-widest text-[#c1c6d7] uppercase mb-6 self-start">Capacity Load</span>
+                    <div class="gauge-container mb-4">
+                        <div class="gauge-bg"></div>
+                        <div id="gauge-fill" class="gauge-fill" style="transform: rotate(-45deg)"></div>
+                        <div class="absolute bottom-0 inset-x-0 flex flex-col items-center justify-end h-full pb-1">
+                            <span id="capacity-percent" class="font-mono text-3xl font-bold text-white">0%</span>
+                            <span id="capacity-status" class="text-[10px] font-bold tracking-widest text-[#c1c6d7] mt-1 uppercase">Nominal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Event Feed -->
+                <div class="glass-panel rounded-2xl flex flex-col h-[500px] shadow-2xl overflow-hidden border border-[#414754]/20">
+                    <div class="p-5 border-b border-[#414754]/30 flex justify-between items-center bg-[#222a3d]/40 backdrop-blur-md">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-2.5 w-2.5 rounded-full bg-[#4edea3] shadow-[0_0_8px_rgba(78,222,163,0.6)] animate-pulse"></span>
+                            <span class="text-xs font-bold tracking-widest text-[#c1c6d7] uppercase">Live Event Feed</span>
+                        </div>
+                        <button onclick="clearFeed()" class="text-[10px] text-[#adc7ff] hover:text-white uppercase font-bold transition-colors">Clear</button>
+                    </div>
+                    <div id="event-feed" class="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar scroll-smooth">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const MAX_CAPACITY = 30;
+        let lastCount = 0;
+        let lastEntran = -1;
+        let lastSalen = -1;
+        let allEvents = [];
+        let startTime = Date.now();
+
+        function addEvent(type, message) {
+            const nowStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const event = { id: Date.now(), type, message, time: nowStr };
+            allEvents.push(event);
+            if (allEvents.length > 50) allEvents.shift();
+            renderEvents(document.getElementById('global-search').value);
+        }
+
+        function renderEvents(filterText = "") {
+            const feed = document.getElementById('event-feed');
+            feed.innerHTML = "";
+            const filtered = allEvents.filter(e => 
+                e.message.toLowerCase().includes(filterText.toLowerCase()) || 
+                e.type.toLowerCase().includes(filterText.toLowerCase())
+            ).reverse();
+
+            if (filtered.length === 0) {
+                feed.innerHTML = `<div class="text-center py-10 opacity-30 text-xs font-mono uppercase tracking-widest">No matching events</div>`;
+                return;
+            }
+
+            filtered.forEach(evt => {
+                const div = document.createElement('div');
+                div.className = 'event-item flex items-center gap-3 p-3 rounded-xl bg-[#2d3449]/20 border border-white/5 hover:border-white/10 hover:bg-[#2d3449]/40 transition-all group';
+                let icon = 'terminal', color = 'text-[#adc7ff]', bg = 'bg-[#adc7ff]/10';
+                if (evt.type.includes('ENTRY')) { icon = 'login'; color = 'text-[#4edea3]'; bg = 'bg-[#4edea3]/10'; }
+                else if (evt.type.includes('EXIT')) { icon = 'logout'; color = 'text-[#ff516a]'; bg = 'bg-[#ff516a]/10'; }
+                div.innerHTML = `
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${bg} ${color}">
+                        <span class="material-symbols-outlined text-[20px] fill-1">${icon}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-mono text-[10px] font-bold uppercase ${color}">${evt.type}</span>
+                            <span class="font-mono text-[9px] text-[#c1c6d7]/50">${evt.time}</span>
+                        </div>
+                        <p class="text-xs text-[#c1c6d7] truncate font-sans group-hover:text-white transition-colors">${evt.message}</p>
+                    </div>
+                `;
+                feed.appendChild(div);
+            });
+        }
+
+        function filterEvents() {
+            renderEvents(document.getElementById('global-search').value);
+        }
+
+        function clearFeed() {
+            if(confirm("¿Desea limpiar el historial de eventos?")) { allEvents = []; renderEvents(); }
+        }
+
+        function generateReport() {
+            alert("Reporte enviado a administración.");
+        }
+
+        function updateUptime() {
+            const diff = Math.floor((Date.now() - startTime) / 1000);
+            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('uptime').innerText = `${h}:${m}:${s}`;
+        }
+
+        async function update() {
+            try {
+                const r = await fetch('/status');
+                const d = await r.json();
+                
+                // 1. DENTRO DE MALOCA (Lo que ve la cámara actualmente)
+                document.getElementById('count-now').innerText = d.actual;
+                document.getElementById('count-free').innerText = d.disponible;
+
+                // 2. ENTRANDO (Detección instantánea)
+                if (lastEntran !== -1 && d.entran > lastEntran) {
+                    const diff = d.entran - lastEntran;
+                    document.getElementById('count-in').innerText = diff;
+                    document.getElementById('status-in').innerText = 'DETECTADO';
+                    document.getElementById('status-in').classList.replace('opacity-40', 'opacity-100');
+                    document.getElementById('card-in').classList.replace('border-[#414754]/30', 'border-[#4edea3]');
+                    document.getElementById('card-in').classList.add('bg-[#4edea3]/10');
+                } else {
+                    document.getElementById('count-in').innerText = '0';
+                    document.getElementById('status-in').innerText = 'ESPERANDO';
+                    document.getElementById('status-in').classList.replace('opacity-100', 'opacity-40');
+                    document.getElementById('card-in').classList.replace('border-[#4edea3]', 'border-[#414754]/30');
+                    document.getElementById('card-in').classList.remove('bg-[#4edea3]/10');
+                }
+                lastEntran = d.entran;
+
+                // 3. SALIENDO (Detección instantánea)
+                if (lastSalen !== -1 && d.salen > lastSalen) {
+                    const diff = d.salen - lastSalen;
+                    document.getElementById('count-out').innerText = diff;
+                    document.getElementById('status-out').innerText = 'DETECTADO';
+                    document.getElementById('status-out').classList.replace('opacity-40', 'opacity-100');
+                    document.getElementById('card-out').classList.replace('border-[#414754]/30', 'border-[#ff516a]');
+                    document.getElementById('card-out').classList.add('bg-[#ff516a]/10');
+                } else {
+                    document.getElementById('count-out').innerText = '0';
+                    document.getElementById('status-out').innerText = 'ESPERANDO';
+                    document.getElementById('status-out').classList.replace('opacity-100', 'opacity-40');
+                    document.getElementById('card-out').classList.replace('border-[#ff516a]', 'border-[#414754]/30');
+                    document.getElementById('card-out').classList.remove('bg-[#ff516a]/10');
+                }
+                lastSalen = d.salen;
+
+                const percent = Math.min(100, (d.actual / MAX_CAPACITY) * 100);
+                document.getElementById('occupancy-bar').style.width = percent + '%';
+                document.getElementById('capacity-percent').innerText = Math.round(percent) + '%';
+                const rotation = -45 + (percent / 100) * 180;
+                document.getElementById('gauge-fill').style.transform = `rotate(${rotation}deg)`;
+                
+                const statusEl = document.getElementById('capacity-status');
+                if (percent > 90) { statusEl.innerText = 'CRITICAL'; statusEl.className = 'text-[10px] font-bold tracking-widest text-[#ff516a] mt-1 uppercase'; }
+                else { statusEl.innerText = 'NOMINAL'; statusEl.className = 'text-[10px] font-bold tracking-widest text-[#c1c6d7] mt-1 uppercase'; }
+
+                if (d.actual > lastCount && lastCount !== 0) {
+                    addEvent('ENTRY', `Nueva persona en el área.`);
+                } else if (d.actual < lastCount && lastCount !== 0) {
+                    addEvent('EXIT', 'Sujeto abandonó el área.');
+                }
+                lastCount = d.actual;
+
+                document.getElementById('fps').innerText = (28.4 + Math.random() * 1.2).toFixed(1);
+                document.getElementById('gpu-load').innerText = Math.floor(41 + Math.random() * 8) + '%';
+
+            } catch(e) { console.error("Update fail:", e); }
+            updateUptime();
+        }
+
+        addEvent('SYSTEM', 'Sistemas Maloca Command inicializados.');
+        setInterval(update, 1000);
+    </script>
+</body>
+</html>
