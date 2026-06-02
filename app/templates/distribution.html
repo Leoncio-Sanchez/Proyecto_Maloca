@@ -17,6 +17,11 @@
         }
         body { background-color: var(--color-surface); color: var(--color-on-surface); font-family: 'Inter', sans-serif; margin: 0; }
         .glass-panel { background: rgba(19, 27, 46, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.06); }
+        .sidebar-item-active {
+            background-color: #00a572;
+            color: #002113;
+        }
+        .fill-1 { font-variation-settings: 'FILL' 1; }
         .table-container { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; }
         .table-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-container-high); border: 2px solid var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; color: var(--color-primary); box-shadow: 0 0 15px rgba(173, 199, 255, 0.2); z-index: 10; }
         .person { position: absolute; width: 24px; height: 24px; background: var(--color-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #003824; font-size: 16px; box-shadow: 0 0 10px rgba(78, 222, 163, 0.4); }
@@ -25,33 +30,67 @@
     </style>
 </head>
 <body>
-    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-16 bg-[#0b1326]/80 backdrop-blur-md border-b border-[#414754]/30">
+    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-8 h-16 bg-[#0b1326]/80 backdrop-blur-md border-b border-[#414754]/30 shadow-sm">
         <div class="flex items-center gap-8">
-            <h1 class="text-xl font-bold text-[#adc7ff] cursor-pointer" onclick="location.href='/'">Maloca Command</h1>
-            <nav class="flex items-center gap-6">
-                <a href="/" class="text-xs font-bold uppercase text-[#c1c6d7] hover:text-[#adc7ff]">Dashboard</a>
-                <a href="/analytics" class="text-xs font-bold uppercase text-[#c1c6d7] hover:text-[#adc7ff]">Analytics</a>
-                <a href="/distribution" class="text-xs font-bold uppercase text-[#adc7ff] border-b-2 border-[#adc7ff]">Distribución</a>
+            <h1 class="text-lg md:text-xl font-bold tracking-tight text-[#adc7ff] select-none cursor-pointer" onclick="location.href='/'">
+                Maloca Command
+            </h1>
+            <nav class="hidden md:flex items-center gap-6">
+                <a href="/" class="text-xs font-bold tracking-widest uppercase pb-1 text-[#c1c6d7] hover:text-[#adc7ff] transition-colors">Dashboard</a>
+                <a href="/analytics" class="text-xs font-bold tracking-widest uppercase pb-1 text-[#c1c6d7] hover:text-[#adc7ff] transition-colors">Analytics</a>
+                <a href="/distribution" class="text-xs font-bold tracking-widest uppercase pb-1 text-[#adc7ff] border-b-2 border-[#adc7ff]">Distribución</a>
             </nav>
         </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden lg:flex items-center bg-[#2d3449]/40 rounded-full px-4 py-1.5 border border-[#414754]/20 focus-within:border-[#adc7ff]/50 transition-colors">
+                <span class="material-symbols-outlined text-[18px] text-[#c1c6d7] mr-2">search</span>
+                <input type="text" id="global-search" oninput="filterEvents()" placeholder="Search telemetry..." class="bg-transparent border-none text-xs text-[#dae2fd] focus:outline-none w-48 font-semibold">
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="p-2 text-[#c1c6d7] hover:text-[#adc7ff] relative transition-transform active:scale-90" onclick="alert('No hay notificaciones críticas pendientes.')">
+                    <span class="material-symbols-outlined text-[22px]">notifications</span>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ffb4ab] rounded-full animate-ping"></span>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ffb4ab] rounded-full"></span>
+                </button>
+                <div class="h-8 w-8 rounded-full bg-[#222a3d] border border-[#414754]/40 flex items-center justify-center cursor-pointer hover:border-[#adc7ff]/50 transition-colors" onclick="alert('Operador: Maloca Admin\nID: MC-7742\nStatus: Online')">
+                    <span class="material-symbols-outlined text-[#adc7ff] text-[20px] fill-1">account_circle</span>
+                </div>
+            </div>
+        </div>
     </header>
-    <aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-[#131b2e]/90 border-r border-[#414754]/30 p-4">
-        <nav class="space-y-1">
-            <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35">
+
+    <aside class="fixed left-0 top-16 h-[calc(100vh-64px)] z-40 flex flex-col p-4 w-64 bg-[#131b2e]/90 backdrop-blur-xl border-r border-[#414754]/30 hidden md:flex">
+        <div class="mb-6 px-2 flex items-center gap-3">
+            <div class="h-10 w-10.5 rounded-lg bg-[#2d3449]/70 flex items-center justify-center border border-[#414754]/40 overflow-hidden">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlvrQqeqoEk_HiRGKVElpPvgSevwVAJXa6oqinCGweJqyDQ6jPDObHAWBPsSzjsGb-lqp9CA9D3crW6bOugH0Fg__leVVmJj73kO6xBlXRKZiqjj_rA3iseXv2xaUdT_rEac2krNa3D8nfURylIiwBuDhdIO7RAYT5ILXfzwpBkum37D8HLdoVjJJW0CJnrmtN-8b2B7hsYcaxNzk58TVsO_dD-pxMTs65OBvP2GLk01HW-DexgZ2OYp946LdzebvR0IMs9fmcujc2" class="h-full w-full object-cover">
+            </div>
+            <div>
+                <h3 class="text-[#adc7ff] font-bold text-sm leading-none">Maloca Admin</h3>
+                <p class="text-[10px] text-[#c1c6d7]/70 font-semibold tracking-wider uppercase mt-1">System Operator</p>
+            </div>
+        </div>
+        <nav class="flex-1 space-y-1">
+            <a href="/" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35 hover:text-[#dae2fd] cursor-pointer transition-colors">
                 <span class="material-symbols-outlined text-[20px]">dashboard</span>
-                <span class="text-xs font-semibold uppercase">Dashboard</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">Dashboard</span>
             </a>
-            <a href="/analytics" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35">
+            <a href="/analytics" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#c1c6d7] hover:bg-[#2d3449]/35 hover:text-[#dae2fd] cursor-pointer transition-colors">
                 <span class="material-symbols-outlined text-[20px]">monitoring</span>
-                <span class="text-xs font-semibold uppercase">Analytics</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">Analytics</span>
             </a>
-            <a href="/distribution" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#00a572] text-[#002113]">
+            <a href="/distribution" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg sidebar-item-active cursor-pointer">
                 <span class="material-symbols-outlined text-[20px] fill-1">grid_view</span>
-                <span class="text-xs font-semibold uppercase">Distribución</span>
+                <span class="text-xs font-semibold tracking-widest uppercase">Distribución</span>
             </a>
         </nav>
+        <div class="mt-auto pt-4 border-t border-[#414754]/20">
+            <button onclick="generateReport()" class="w-full py-2.5 px-4 bg-[#adc7ff] text-[#001a41] font-semibold tracking-widest uppercase text-xs rounded-lg hover:brightness-110 hover:shadow-[0_0_15px_rgba(173,199,255,0.4)] transition-all active:scale-95">
+                Generate Report
+            </button>
+        </div>
     </aside>
-    <main class="ml-64 pt-24 p-12">
+
+    <main class="md:ml-64 pt-24 p-12">
         <h2 class="text-3xl font-bold text-white mb-8">Distribución de Maloca</h2>
         <div class="glass-panel p-10 rounded-3xl flex flex-wrap justify-center gap-16">
             <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 01</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
@@ -66,5 +105,14 @@
             <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 10</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
         </div>
     </main>
+
+    <script>
+        function filterEvents() {
+            console.log("Search trigger in Distribution page");
+        }
+        function generateReport() {
+            alert("Reporte de distribución enviado a administración.");
+        }
+    </script>
 </body>
 </html>

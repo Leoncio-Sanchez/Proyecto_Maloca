@@ -7,5 +7,5 @@ class PersonDetector:
         self.model = YOLO(model_name)
     
     def track(self, frame):
-        # Tracking solo para clase 0 (persona)
-        return self.model.track(frame, persist=True, classes=0, verbose=False)
+        # Tracking solo para clase 0 (persona) con resolución reducida para velocidad
+        return self.model.track(frame, persist=True, classes=0, verbose=False, imgsz=320)

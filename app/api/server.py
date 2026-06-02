@@ -91,13 +91,14 @@ def create_app(monitor):
     @app.get("/video_feed")
     def video_feed():
         def gen():
+            last_frame = None
             while True:
                 f = monitor.get_frame()
-                if f:
+                if f and f != last_frame:
                     yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + f + b'\r\n')
+                    last_frame = f
                 else:
-                    time.sleep(0.1)
-                time.sleep(0.01)
+                    time.sleep(0.01)
         
         return StreamingResponse(gen(), media_type="multipart/x-mixed-replace; boundary=frame")
     
