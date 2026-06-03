@@ -44,10 +44,41 @@ def create_app(monitor):
 
     @app.get("/status")
     def status(): 
-        counts = monitor.counter.counts
+        counts = monitor.counter.counts.copy()
+        counts["camera_online"] = monitor.camera_connected
         # Guardar en historial periódicamente (ej: cada vez que hay un cambio)
         save_to_history(counts)
         return counts
+
+    @app.get("/api/distribution")
+    def get_distribution_api():
+        return monitor.get_distribution_data()
+
+    @app.get("/api/config")
+    def get_config_api():
+        return {
+            "line_position": monitor.counter.line_ratio,
+            "tables": monitor.counter.tables_config
+        }
+
+    @app.post("/api/config")
+    def update_config_api(config: dict):
+        if "line_position" in config:
+            monitor.counter.line_ratio = float(config["line_position"])
+        if "tables" in config:
+            tables = []
+            for t in config["tables"]:
+                tables.append({
+                    "id": int(t["id"]),
+                    "name": str(t["name"]),
+                    "x": float(t["x"]),
+                    "y": float(t["y"]),
+                    "radius": float(t["radius"]),
+                    "capacity": int(t["capacity"])
+                })
+            monitor.counter.tables_config = tables
+        monitor.counter.save_config()
+        return {"status": "success"}
 
     @app.get("/history")
     def get_history():
@@ -89,16 +120,15 @@ def create_app(monitor):
             print(f"Error saving history: {e}")
 
     @app.get("/video_feed")
-    def video_feed():
+    def video_feed(view: str = None):
         def gen():
-            last_frame = None
             while True:
-                f = monitor.get_frame()
-                if f and f != last_frame:
+                f = monitor.get_frame(view)
+                if f:
                     yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + f + b'\r\n')
-                    last_frame = f
                 else:
-                    time.sleep(0.01)
+                    time.sleep(0.1)
+                time.sleep(0.01)
         
         return StreamingResponse(gen(), media_type="multipart/x-mixed-replace; boundary=frame")
     

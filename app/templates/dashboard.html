@@ -207,24 +207,24 @@
 
             <div id="card-in" class="col-span-6 md:col-span-3 glass-panel rounded-xl p-5 flex flex-col justify-between border-l-4 border-[#414754]/30 min-h-[160px] shadow-lg group transition-all duration-300">
                 <div class="flex justify-between items-start">
-                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Entrando</span>
+                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Ingresos Totales</span>
                     <span id="icon-in" class="material-symbols-outlined text-[#c1c6d7] text-[24px]">login</span>
                 </div>
                 <div class="mt-2">
                     <span id="count-in" class="font-mono text-5xl font-bold text-white tracking-wider">0</span>
                 </div>
-                <span id="status-in" class="text-[10px] font-bold tracking-tighter uppercase mt-2 opacity-40 text-[#c1c6d7]">Sensor Inactivo</span>
+                <span id="status-in" class="text-[10px] font-bold tracking-tighter uppercase mt-2 opacity-40 text-[#c1c6d7]">Sensor Activo</span>
             </div>
 
             <div id="card-out" class="col-span-6 md:col-span-3 glass-panel rounded-xl p-5 flex flex-col justify-between border-l-4 border-[#414754]/30 min-h-[160px] shadow-lg group transition-all duration-300">
                 <div class="flex justify-between items-start">
-                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Saliendo</span>
+                    <span class="text-[10px] font-bold tracking-widest text-[#c1c6d7] uppercase select-none">Salidas Totales</span>
                     <span id="icon-out" class="material-symbols-outlined text-[#c1c6d7] text-[24px]">logout</span>
                 </div>
                 <div class="mt-2">
                     <span id="count-out" class="font-mono text-5xl font-bold text-white tracking-wider">0</span>
                 </div>
-                <span id="status-out" class="text-[10px] font-bold tracking-tighter uppercase mt-2 opacity-40 text-[#c1c6d7]">Sensor Inactivo</span>
+                <span id="status-out" class="text-[10px] font-bold tracking-tighter uppercase mt-2 opacity-40 text-[#c1c6d7]">Sensor Activo</span>
             </div>
 
             <div class="col-span-12 md:col-span-3 glass-panel rounded-xl p-5 flex flex-col justify-between border-l-4 border-l-[#adc7ff] min-h-[160px] shadow-lg group">
@@ -241,7 +241,7 @@
             <!-- Monitoring Area -->
             <div class="col-span-12 lg:col-span-9 space-y-8">
                 <div class="relative glass-panel rounded-2xl overflow-hidden aspect-video group border border-[#414754]/30 shadow-2xl">
-                    <img id="video-feed" src="/video_feed" class="w-full h-full object-cover opacity-95 transition-opacity duration-500" onerror="this.src='https://via.placeholder.com/1280x720/0b1326/adc7ff?text=WAITING+FOR+VIDEO+STREAM...'">
+                    <img id="video-feed" src="/video_feed?view=dashboard" class="w-full h-full object-cover opacity-95 transition-opacity duration-500" onerror="this.src='https://via.placeholder.com/1280x720/0b1326/adc7ff?text=WAITING+FOR+VIDEO+STREAM...'">
                     
                     <!-- Overlays -->
                     <div class="absolute inset-0 pointer-events-none select-none">
@@ -291,13 +291,13 @@
                             <p id="gpu-load" class="font-mono text-sm text-white font-bold mt-1.5">--%</p>
                         </div>
                     </div>
-                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-[#2d3449]/30 transition-colors cursor-default">
-                        <div class="w-10 h-10 rounded-full bg-[#c1c6d7]/10 flex items-center justify-center text-[#c1c6d7]">
-                            <span class="material-symbols-outlined">update</span>
+                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-[#2d3449]/30 transition-colors cursor-default" id="camera-status-card">
+                        <div class="w-10 h-10 rounded-full bg-[#ffb4ab]/10 flex items-center justify-center text-[#ffb4ab]" id="camera-status-icon">
+                            <span class="material-symbols-outlined fill-1">videocam_off</span>
                         </div>
                         <div>
-                            <p class="text-[10px] font-bold text-[#c1c6d7] tracking-widest uppercase leading-none">STATUS</p>
-                            <p class="font-mono text-sm text-white font-bold mt-1.5 uppercase">Online</p>
+                            <p class="text-[10px] font-bold text-[#c1c6d7] tracking-widest uppercase leading-none">CAMARA IP</p>
+                            <p id="camera-status-text" class="font-mono text-sm text-[#ffb4ab] font-bold mt-1.5 uppercase">Offline</p>
                         </div>
                     </div>
                 </div>
@@ -414,16 +414,14 @@
                 document.getElementById('count-now').innerText = d.actual;
                 document.getElementById('count-free').innerText = d.disponible;
 
-                // 2. ENTRANDO (Detección instantánea)
+                // 2. ENTRANDO (Total de entradas con indicador de cruce)
+                document.getElementById('count-in').innerText = d.entran;
                 if (lastEntran !== -1 && d.entran > lastEntran) {
-                    const diff = d.entran - lastEntran;
-                    document.getElementById('count-in').innerText = diff;
-                    document.getElementById('status-in').innerText = 'DETECTADO';
+                    document.getElementById('status-in').innerText = 'INGRESO DETECTADO';
                     document.getElementById('status-in').classList.replace('opacity-40', 'opacity-100');
                     document.getElementById('card-in').classList.replace('border-[#414754]/30', 'border-[#4edea3]');
                     document.getElementById('card-in').classList.add('bg-[#4edea3]/10');
                 } else {
-                    document.getElementById('count-in').innerText = '0';
                     document.getElementById('status-in').innerText = 'ESPERANDO';
                     document.getElementById('status-in').classList.replace('opacity-100', 'opacity-40');
                     document.getElementById('card-in').classList.replace('border-[#4edea3]', 'border-[#414754]/30');
@@ -431,16 +429,14 @@
                 }
                 lastEntran = d.entran;
 
-                // 3. SALIENDO (Detección instantánea)
+                // 3. SALIENDO (Total de salidas con indicador de cruce)
+                document.getElementById('count-out').innerText = d.salen;
                 if (lastSalen !== -1 && d.salen > lastSalen) {
-                    const diff = d.salen - lastSalen;
-                    document.getElementById('count-out').innerText = diff;
-                    document.getElementById('status-out').innerText = 'DETECTADO';
+                    document.getElementById('status-out').innerText = 'SALIDA DETECTADA';
                     document.getElementById('status-out').classList.replace('opacity-40', 'opacity-100');
                     document.getElementById('card-out').classList.replace('border-[#414754]/30', 'border-[#ff516a]');
                     document.getElementById('card-out').classList.add('bg-[#ff516a]/10');
                 } else {
-                    document.getElementById('count-out').innerText = '0';
                     document.getElementById('status-out').innerText = 'ESPERANDO';
                     document.getElementById('status-out').classList.replace('opacity-100', 'opacity-40');
                     document.getElementById('card-out').classList.replace('border-[#ff516a]', 'border-[#414754]/30');
@@ -467,6 +463,21 @@
 
                 document.getElementById('fps').innerText = (28.4 + Math.random() * 1.2).toFixed(1);
                 document.getElementById('gpu-load').innerText = Math.floor(41 + Math.random() * 8) + '%';
+
+                // Actualizar Estado de Cámara
+                const camStatusText = document.getElementById('camera-status-text');
+                const camStatusIcon = document.getElementById('camera-status-icon');
+                if (d.camera_online) {
+                    camStatusText.innerText = 'ONLINE';
+                    camStatusText.className = 'font-mono text-sm text-[#4edea3] font-bold mt-1.5 uppercase';
+                    camStatusIcon.className = 'w-10 h-10 rounded-full bg-[#4edea3]/10 flex items-center justify-center text-[#4edea3]';
+                    camStatusIcon.innerHTML = '<span class="material-symbols-outlined fill-1">videocam</span>';
+                } else {
+                    camStatusText.innerText = 'OFFLINE';
+                    camStatusText.className = 'font-mono text-sm text-[#ffb4ab] font-bold mt-1.5 uppercase';
+                    camStatusIcon.className = 'w-10 h-10 rounded-full bg-[#ffb4ab]/10 flex items-center justify-center text-[#ffb4ab]';
+                    camStatusIcon.innerHTML = '<span class="material-symbols-outlined fill-1">videocam_off</span>';
+                }
 
             } catch(e) { console.error("Update fail:", e); }
             updateUptime();

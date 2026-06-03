@@ -22,14 +22,123 @@
             color: #002113;
         }
         .fill-1 { font-variation-settings: 'FILL' 1; }
-        .table-container { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; }
-        .table-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-container-high); border: 2px solid var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; color: var(--color-primary); box-shadow: 0 0 15px rgba(173, 199, 255, 0.2); z-index: 10; }
-        .person { position: absolute; width: 24px; height: 24px; background: var(--color-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #003824; font-size: 16px; box-shadow: 0 0 10px rgba(78, 222, 163, 0.4); }
-        .person-1 { top: 0; left: 50%; transform: translateX(-50%); }
-        .person-2 { bottom: 0; left: 50%; transform: translateX(-50%); }
+        
+        /* Estilos del Mapa Digital Twin */
+        .table-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition: box-shadow 0.3s ease;
+            z-index: 20;
+        }
+        .table-circle-element {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.65rem;
+            color: var(--color-on-surface);
+            transition: border-color 0.3s, color 0.3s;
+        }
+        .table-empty {
+            background: rgba(19, 27, 46, 0.85);
+            border: 2.5px solid #4edea3;
+            box-shadow: 0 0 20px rgba(78, 222, 163, 0.25);
+            color: #4edea3;
+        }
+        .table-occupied {
+            background: rgba(19, 27, 46, 0.85);
+            border: 2.5px solid #adc7ff;
+            box-shadow: 0 0 25px rgba(173, 199, 255, 0.35);
+            color: #adc7ff;
+        }
+        .table-full {
+            background: rgba(19, 27, 46, 0.85);
+            border: 2.5px solid #ff516a;
+            box-shadow: 0 0 25px rgba(255, 81, 106, 0.4);
+            color: #ff516a;
+        }
+        
+        .person-avatar {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4edea3;
+            border: 1.5px solid var(--color-surface);
+            color: #002113;
+            font-size: 9px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(78, 222, 163, 0.6);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 21;
+        }
+        
+        .floating-unassigned {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #adc7ff;
+            border: 1px solid var(--color-surface);
+            box-shadow: 0 0 8px rgba(173, 199, 255, 0.6);
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #0b1326;
+            font-weight: bold;
+            transition: all 1s ease-in-out;
+        }
+
+        .map-grid-bg {
+            background-size: 20px 20px;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+        }
+
+        /* Estilos en modo edición */
+        .edit-active .table-node {
+            cursor: move;
+        }
+        .edit-active .table-circle-element {
+            border-style: dashed !important;
+            animation: pulse-border 1.5s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(255,255,255,0.2); }
+            50% { border-color: #adc7ff; }
+        }
+
+        /* Línea divisoria en modo normal y edición */
+        .dividing-line-container {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            transform: translateX(-50%);
+            border-left: 2px dashed rgba(255, 81, 106, 0.5);
+            z-index: 10;
+            pointer-events: none;
+        }
+        .edit-active .dividing-line-container {
+            cursor: col-resize;
+            width: 16px;
+            border-left: 3px dashed #ff516a;
+            pointer-events: auto;
+            z-index: 30;
+        }
     </style>
 </head>
-<body>
+<body class="custom-scrollbar">
     <header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-8 h-16 bg-[#0b1326]/80 backdrop-blur-md border-b border-[#414754]/30 shadow-sm">
         <div class="flex items-center gap-8">
             <h1 class="text-lg md:text-xl font-bold tracking-tight text-[#adc7ff] select-none cursor-pointer" onclick="location.href='/'">
@@ -90,19 +199,144 @@
         </div>
     </aside>
 
-    <main class="md:ml-64 pt-24 p-12">
-        <h2 class="text-3xl font-bold text-white mb-8">Distribución de Maloca</h2>
-        <div class="glass-panel p-10 rounded-3xl flex flex-wrap justify-center gap-16">
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 01</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 02</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 03</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 04</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 05</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 06</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 07</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 08</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 09</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
-            <div class="table-container"><div class="person person-1"><span class="material-symbols-outlined text-[14px]">person</span></div><div class="table-circle">MESA 10</div><div class="person person-2"><span class="material-symbols-outlined text-[14px]">person</span></div></div>
+    <main class="md:ml-64 pt-24 p-4 md:p-8 lg:p-12">
+        <div class="max-w-[1920px] mx-auto space-y-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-white tracking-tight">Distribución Física Real</h2>
+                    <p class="text-xs text-[#c1c6d7] mt-1">Arrastra las mesas y la línea en el panel de la derecha para alinearlas con tu cámara real.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <!-- Camera Connection Status -->
+                    <div id="camera-badge" class="flex items-center gap-2 bg-[#ffb4ab]/10 border border-[#ffb4ab]/30 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                        <span id="camera-badge-dot" class="h-2 w-2 rounded-full bg-[#ff516a] animate-pulse"></span>
+                        <span id="camera-badge-text" class="text-[#ff516a] uppercase">Cámara Offline</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-[#131b2e]/60 border border-white/5 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                        <span class="h-2 w-2 rounded-full bg-[#4edea3] animate-pulse"></span>
+                        <span class="text-[#c1c6d7]">Telemetría Online</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-panel rounded-xl p-5 flex flex-col justify-between border-t-4 border-t-[#adc7ff] shadow-lg">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-[#c1c6d7] uppercase tracking-wider">
+                        <span>Personas en Maloca</span>
+                        <span class="material-symbols-outlined text-[#adc7ff] text-[20px]">group</span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="kpi-people" class="font-mono text-4xl font-bold text-white">0</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl p-5 flex flex-col justify-between border-t-4 border-t-[#adc7ff] shadow-lg">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-[#c1c6d7] uppercase tracking-wider">
+                        <span>Mesas Totales</span>
+                        <span class="material-symbols-outlined text-[#adc7ff] text-[20px]">table_restaurant</span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="kpi-tables" class="font-mono text-4xl font-bold text-white">0</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl p-5 flex flex-col justify-between border-t-4 border-t-[#adc7ff] shadow-lg">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-[#c1c6d7] uppercase tracking-wider">
+                        <span>Ocupación General</span>
+                        <span class="material-symbols-outlined text-[#adc7ff] text-[20px]">percent</span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="kpi-occupancy" class="font-mono text-4xl font-bold text-white">0%</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl p-5 flex flex-col justify-between border-t-4 border-t-[#adc7ff] shadow-lg">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-[#c1c6d7] uppercase tracking-wider">
+                        <span>Circulando (Sin Mesa)</span>
+                        <span class="material-symbols-outlined text-[#adc7ff] text-[20px]">directions_walk</span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="kpi-circulating" class="font-mono text-4xl font-bold text-white">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Split Panel: Video Feed vs Digital Twin Map -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                <!-- Left Column: Camera Video Feed & Circulating People (Col 5) -->
+                <div class="xl:col-span-5 space-y-6">
+                    <div class="relative glass-panel rounded-2xl overflow-hidden aspect-video border border-[#414754]/30 shadow-2xl group">
+                        <img id="video-feed" src="/video_feed?view=distribution" class="w-full h-full object-cover opacity-95" onerror="this.src='https://via.placeholder.com/640x480/0b1326/adc7ff?text=CONECTANDO+CON+FEED+DE+VIDEO...'">
+                        <div class="absolute inset-0 pointer-events-none select-none">
+                            <div class="absolute inset-0 opacity-5 bg-[linear-gradient(to_bottom,transparent_50%,rgba(173,199,255,0.1)_50%)] bg-[length:100%_4px]"></div>
+                            <div class="absolute top-4 right-4 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#ffb4ab]/30 shadow-lg">
+                                <div class="w-2 h-2 rounded-full bg-[#ffb4ab] animate-pulse"></div>
+                                <span class="font-mono text-[#ffb4ab] text-[10px] font-bold tracking-widest">LIVE REC</span>
+                            </div>
+                            <div class="absolute bottom-4 left-4 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded border border-white/10 text-[9px] text-[#c1c6d7] font-bold tracking-wider">
+                                VISTA ANALÍTICA DE CÁMARA
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel rounded-xl p-5 border border-[#414754]/20 shadow-md">
+                        <h3 class="text-xs font-bold text-[#c1c6d7] tracking-widest uppercase mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-[#adc7ff]">directions_walk</span>
+                            Lista de Personas sin Mesa Asignada
+                        </h3>
+                        <div id="unassigned-container" class="flex flex-wrap gap-2.5 min-h-[50px] items-center p-3 rounded-lg bg-[#0b1326]/40 border border-white/5">
+                            <p class="text-xs text-[#c1c6d7]/40 uppercase tracking-widest w-full text-center py-2 font-mono">No hay personas circulando</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Digital Twin Plan & Editor (Col 7) -->
+                <div class="xl:col-span-7">
+                    <div class="glass-panel p-6 rounded-2xl border border-[#414754]/30 shadow-2xl flex flex-col h-full" id="twin-panel">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-sm font-bold text-white tracking-widest uppercase">
+                                Plano de Maloca (Digital Twin)
+                            </h3>
+                            <div class="flex items-center gap-3">
+                                <!-- Layout Editor Buttons -->
+                                <div id="editor-controls" class="flex items-center gap-2">
+                                    <button id="edit-mode-btn" onclick="toggleEditMode()" class="text-[10px] bg-[#adc7ff]/10 hover:bg-[#adc7ff]/20 text-[#adc7ff] border border-[#adc7ff]/20 px-2.5 py-1.5 rounded uppercase font-bold transition-all active:scale-95">
+                                        Editar Distribución
+                                    </button>
+                                </div>
+                                <span class="text-[9px] font-mono text-[#4edea3] bg-[#4edea3]/10 border border-[#4edea3]/20 px-2 py-1 rounded uppercase font-bold" id="telemetry-badge">
+                                    En Vivo
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 2D Canvas Plane -->
+                        <div class="relative w-full aspect-[4/3] bg-[#131b2e]/50 border border-[#414754]/20 rounded-xl overflow-hidden map-grid-bg shadow-inner" id="map-canvas">
+                            
+                            <!-- Dividing Line -->
+                            <div id="dividing-line" class="dividing-line-container" style="left: 50%;">
+                                <div class="absolute top-3 left-1/2 -translate-x-1/2 bg-[#ff516a] text-white text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider whitespace-nowrap shadow-md pointer-events-none select-none">
+                                    Línea de Entrada
+                                </div>
+                            </div>
+                            
+                            <!-- Labels zones -->
+                            <div class="absolute top-4 left-6 text-[#ff516a]/40 text-[10px] font-bold uppercase tracking-widest pointer-events-none select-none">
+                                Zona Fuera
+                            </div>
+                            <div class="absolute top-4 right-6 text-[#4edea3]/40 text-[10px] font-bold uppercase tracking-widest pointer-events-none select-none">
+                                Zona Dentro
+                            </div>
+
+                            <!-- Interactive Layer for Tables and People -->
+                            <div id="canvas-elements" class="absolute inset-0">
+                                <!-- Dynamically populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -111,8 +345,361 @@
             console.log("Search trigger in Distribution page");
         }
         function generateReport() {
-            alert("Reporte de distribución enviado a administración.");
+            alert("Reporte de distribución física enviado a administración.");
         }
+
+        // Estado del editor
+        let editMode = false;
+        let systemConfig = { line_position: 0.5, tables: [] };
+        let activeTelemetryInterval = null;
+
+        // Función para posicionar personas circularmente alrededor del centro de la mesa
+        function getPersonOffset(index, total, radius = 46) {
+            if (total === 0) return { x: 0, y: 0 };
+            let angle = (2 * Math.PI * index) / total - Math.PI / 2;
+            let x = Math.round(Math.cos(angle) * radius);
+            let y = Math.round(Math.sin(angle) * radius);
+            return { x, y };
+        }
+
+        let lastUnassignedPositions = {};
+
+        // Función para consultar la telemetría en tiempo real
+        async function fetchDistribution() {
+            if (editMode) return; // Detener actualizaciones visuales del servidor si estamos arrastrando
+            
+            try {
+                const res = await fetch('/api/distribution');
+                const data = await res.json();
+
+                // Actualizar Estado de Conexión de Cámara
+                const camBadge = document.getElementById('camera-badge');
+                const camBadgeDot = document.getElementById('camera-badge-dot');
+                const camBadgeText = document.getElementById('camera-badge-text');
+
+                if (data.camera_online) {
+                    camBadge.className = 'flex items-center gap-2 bg-[#4edea3]/10 border border-[#4edea3]/30 px-3 py-1.5 rounded-lg text-xs font-semibold';
+                    camBadgeDot.className = 'h-2 w-2 rounded-full bg-[#4edea3] animate-pulse';
+                    camBadgeText.className = 'text-[#4edea3] uppercase';
+                    camBadgeText.innerText = 'Cámara Online';
+                } else {
+                    camBadge.className = 'flex items-center gap-2 bg-[#ffb4ab]/10 border border-[#ffb4ab]/30 px-3 py-1.5 rounded-lg text-xs font-semibold';
+                    camBadgeDot.className = 'h-2 w-2 rounded-full bg-[#ff516a] animate-pulse';
+                    camBadgeText.className = 'text-[#ff516a] uppercase';
+                    camBadgeText.innerText = 'Cámara Offline';
+                }
+
+                // KPIs superiores
+                const totalPeople = data.total_people || 0;
+                const totalTables = data.total_tables || 0;
+                const unassignedCount = data.unassigned_people ? data.unassigned_people.length : 0;
+                
+                let totalSeatsCapacity = 0;
+                if (data.tables) {
+                    data.tables.forEach(t => totalSeatsCapacity += t.capacity);
+                }
+                const occupancyPercent = totalSeatsCapacity > 0 
+                    ? Math.round(((totalPeople - unassignedCount) / totalSeatsCapacity) * 100)
+                    : 0;
+
+                document.getElementById('kpi-people').innerText = totalPeople;
+                document.getElementById('kpi-tables').innerText = totalTables;
+                document.getElementById('kpi-occupancy').innerText = occupancyPercent + '%';
+                document.getElementById('kpi-circulating').innerText = unassignedCount;
+
+                // Suavizar y renderizar la línea divisoria según el backend
+                if (data.tables && data.tables.length > 0) {
+                    // Cargar la posición de la línea
+                    const dividingLine = document.getElementById('dividing-line');
+                    // Usar el valor que tiene el backend en memoria
+                    const linePos = systemConfig.line_position * 100;
+                    dividingLine.style.left = `${linePos}%`;
+                }
+
+                // Personas circulando en el panel lateral
+                const unassignedContainer = document.getElementById('unassigned-container');
+                if (unassignedCount === 0) {
+                    unassignedContainer.innerHTML = `<p class="text-xs text-[#c1c6d7]/40 uppercase tracking-widest w-full text-center py-2 font-mono">No hay personas circulando</p>`;
+                } else {
+                    unassignedContainer.innerHTML = data.unassigned_people.map(id => `
+                        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-[#adc7ff]/10 border border-[#adc7ff]/30 text-[#adc7ff] text-xs font-semibold rounded-full font-mono shadow-md animate-pulse">
+                            <span class="material-symbols-outlined text-[14px]">person</span>
+                            <span>ID:${id}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Plano 2D Digital Twin
+                const canvasElements = document.getElementById('canvas-elements');
+                canvasElements.innerHTML = '';
+
+                // Renderizar las mesas
+                if (data.tables) {
+                    data.tables.forEach(table => {
+                        const px = table.x_ratio * 100;
+                        const py = table.y_ratio * 100;
+
+                        let stateClass = 'table-empty';
+                        if (table.count > 0) {
+                            stateClass = table.count >= table.capacity ? 'table-full' : 'table-occupied';
+                        }
+
+                        const tableDiv = document.createElement('div');
+                        tableDiv.className = 'table-node';
+                        tableDiv.style.left = `${px}%`;
+                        tableDiv.style.top = `${py}%`;
+
+                        tableDiv.innerHTML = `
+                            <div class="table-circle-element ${stateClass}">
+                                <span class="font-mono text-[9px] opacity-70">${table.name}</span>
+                                <span class="text-base font-bold tracking-tight mt-0.5">${table.count}/${table.capacity}</span>
+                            </div>
+                        `;
+
+                        if (table.people_ids) {
+                            table.people_ids.forEach((personId, idx) => {
+                                const offset = getPersonOffset(idx, table.people_ids.length);
+                                const personEl = document.createElement('div');
+                                personEl.className = 'person-avatar';
+                                personEl.style.left = `calc(50% + ${offset.x}px - 11px)`;
+                                personEl.style.top = `calc(50% + ${offset.y}px - 11px)`;
+                                personEl.innerHTML = personId;
+                                personEl.title = `Estudiante ID: ${personId}`;
+                                tableDiv.appendChild(personEl);
+                            });
+                        }
+
+                        canvasElements.appendChild(tableDiv);
+                    });
+                }
+
+                // Renderizar personas sin mesa (circulando) en el plano 2D
+                if (data.unassigned_people) {
+                    // Mantener el divisor en la posición relativa
+                    const lineThreshold = systemConfig.line_position * 100;
+                    data.unassigned_people.forEach((personId) => {
+                        let x, y;
+                        if (lastUnassignedPositions[personId]) {
+                            const prev = lastUnassignedPositions[personId];
+                            const dx = (Math.random() - 0.5) * 6;
+                            const dy = (Math.random() - 0.5) * 6;
+                            // Mantener dentro del lado derecho (DENTRO)
+                            x = Math.max(lineThreshold + 2, Math.min(95, prev.x + dx));
+                            y = Math.max(10, Math.min(90, prev.y + dy));
+                        } else {
+                            x = (lineThreshold + 5) + Math.random() * (90 - lineThreshold - 5);
+                            y = 15 + Math.random() * 70;
+                        }
+
+                        lastUnassignedPositions[personId] = { x, y };
+
+                        const unassignedEl = document.createElement('div');
+                        unassignedEl.className = 'floating-unassigned';
+                        unassignedEl.style.left = `${x}%`;
+                        unassignedEl.style.top = `${y}%`;
+                        unassignedEl.innerHTML = personId;
+                        unassignedEl.title = `Estudiante Circulando ID: ${personId}`;
+                        canvasElements.appendChild(unassignedEl);
+                    });
+
+                    for (const id in lastUnassignedPositions) {
+                        if (!data.unassigned_people.includes(parseInt(id))) {
+                            delete lastUnassignedPositions[id];
+                        }
+                    }
+                }
+
+            } catch (err) {
+                console.error("Error fetching distribution telemetry:", err);
+            }
+        }
+
+        // Cargar configuración de mesas e inicializar
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                systemConfig = await res.json();
+                
+                // Aplicar la línea de entrada inicial
+                document.getElementById('dividing-line').style.left = `${systemConfig.line_position * 100}%`;
+                
+                // Si no estamos en modo edición, pintar el plano con la telemetría
+                if (!editMode) {
+                    fetchDistribution();
+                }
+            } catch (err) {
+                console.error("Error loading config:", err);
+            }
+        }
+
+        // Control del modo edición (Drag-and-Drop)
+        function toggleEditMode() {
+            editMode = !editMode;
+            
+            const panel = document.getElementById('twin-panel');
+            const editBtn = document.getElementById('edit-mode-btn');
+            const badge = document.getElementById('telemetry-badge');
+            const canvasElements = document.getElementById('canvas-elements');
+            const dividingLine = document.getElementById('dividing-line');
+
+            if (editMode) {
+                // Entrar a Modo Edición
+                panel.classList.add('edit-active');
+                badge.innerText = "Configurando";
+                badge.className = "text-[9px] font-mono text-[#ffb4ab] bg-[#ffb4ab]/10 border border-[#ffb4ab]/20 px-2 py-1 rounded uppercase font-bold";
+                
+                // Crear controles de Guardar y Cancelar
+                document.getElementById('editor-controls').innerHTML = `
+                    <button onclick="saveLayout()" class="text-[10px] bg-[#4edea3]/20 hover:bg-[#4edea3]/30 text-[#4edea3] border border-[#4edea3]/30 px-3 py-1.5 rounded uppercase font-bold transition-all active:scale-95">
+                        Guardar
+                    </button>
+                    <button onclick="cancelEdit()" class="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1.5 rounded uppercase font-bold transition-all active:scale-95">
+                        Cancelar
+                    </button>
+                `;
+
+                // Renderizar mesas vacías de forma estática para poder arrastrarlas
+                canvasElements.innerHTML = '';
+                systemConfig.tables.forEach(table => {
+                    const tableDiv = document.createElement('div');
+                    tableDiv.className = 'table-node';
+                    tableDiv.style.left = `${table.x * 100}%`;
+                    tableDiv.style.top = `${table.y * 100}%`;
+                    tableDiv.dataset.id = table.id;
+
+                    tableDiv.innerHTML = `
+                        <div class="table-circle-element table-occupied">
+                            <span class="font-mono text-[9px] opacity-70">${table.name}</span>
+                            <span class="text-xs font-bold mt-1">Mesa</span>
+                        </div>
+                    `;
+
+                    // Lógica del drag and drop para las mesas
+                    setupDrag(tableDiv, 'table');
+                    canvasElements.appendChild(tableDiv);
+                });
+
+                // Activar arrastre para la línea divisoria
+                setupDrag(dividingLine, 'line');
+
+            } else {
+                // Salir de Modo Edición
+                panel.classList.remove('edit-active');
+                badge.innerText = "En Vivo";
+                badge.className = "text-[9px] font-mono text-[#4edea3] bg-[#4edea3]/10 border border-[#4edea3]/20 px-2 py-1 rounded uppercase font-bold";
+                
+                document.getElementById('editor-controls').innerHTML = `
+                    <button id="edit-mode-btn" onclick="toggleEditMode()" class="text-[10px] bg-[#adc7ff]/10 hover:bg-[#adc7ff]/20 text-[#adc7ff] border border-[#adc7ff]/20 px-2.5 py-1.5 rounded uppercase font-bold transition-all active:scale-95">
+                        Editar Distribución
+                    </button>
+                `;
+
+                // Recargar configuración original y reiniciar consulta
+                loadConfig();
+            }
+        }
+
+        // Lógica de arrastre universal para mesas y línea
+        function setupDrag(element, type) {
+            let active = false;
+            let startX, startY;
+            const container = document.getElementById('map-canvas');
+
+            element.addEventListener('mousedown', dragStart);
+            element.addEventListener('touchstart', dragStart, { passive: true });
+
+            function dragStart(e) {
+                if (!editMode) return;
+                active = true;
+                
+                const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+                startX = clientX - element.offsetLeft;
+                startY = clientY - element.offsetTop;
+
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('mouseup', dragEnd);
+                document.addEventListener('touchend', dragEnd);
+            }
+
+            function drag(e) {
+                if (!active) return;
+                e.preventDefault();
+
+                const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+                const rect = container.getBoundingClientRect();
+                let x = clientX - rect.left;
+                let y = clientY - rect.top;
+
+                // Límites porcentuales
+                let px = (x / rect.width);
+                let py = (y / rect.height);
+
+                if (type === 'table') {
+                    // Mantener mesas en límites seguros del lienzo
+                    px = Math.max(0.05, Math.min(0.95, px));
+                    py = Math.max(0.08, Math.min(0.92, py));
+
+                    element.style.left = `${px * 100}%`;
+                    element.style.top = `${py * 100}%`;
+
+                    // Actualizar en el objeto temporal local de configuración
+                    const tableId = parseInt(element.dataset.id);
+                    const tableIndex = systemConfig.tables.findIndex(t => t.id === tableId);
+                    if (tableIndex !== -1) {
+                        systemConfig.tables[tableIndex].x = px;
+                        systemConfig.tables[tableIndex].y = py;
+                    }
+                } else if (type === 'line') {
+                    // Arrastre horizontal limitado de la línea
+                    px = Math.max(0.1, Math.min(0.9, px));
+                    element.style.left = `${px * 100}%`;
+                    systemConfig.line_position = px;
+                }
+            }
+
+            function dragEnd() {
+                active = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('mouseup', dragEnd);
+                document.removeEventListener('touchend', dragEnd);
+            }
+        }
+
+        // Guardar configuración en la base de datos (POST)
+        async function saveLayout() {
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(systemConfig)
+                });
+                
+                if (res.ok) {
+                    alert('Configuración guardada correctamente.');
+                    toggleEditMode(); // Salir de modo edición y refrescar
+                } else {
+                    alert('Error al guardar la configuración.');
+                }
+            } catch (err) {
+                console.error("Error saving config:", err);
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+        function cancelEdit() {
+            toggleEditMode();
+        }
+
+        // Inicialización del sistema
+        loadConfig();
+        // Telemetría periódica
+        activeTelemetryInterval = setInterval(fetchDistribution, 1000);
     </script>
 </body>
 </html>
